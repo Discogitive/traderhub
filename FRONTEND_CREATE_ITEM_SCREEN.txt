@@ -1,0 +1,183 @@
+import React, { useState } from 'react';
+import {
+  View,
+  TextInput,
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  Alert,
+  ScrollView,
+  Picker,
+  ActivityIndicator,
+} from 'react-native';
+import { itemsAPI } from '../services/api';
+
+const CreateItemScreen = ({ navigation }) => {
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('Electronics');
+  const [condition, setCondition] = useState('Good');
+  const [estimatedValue, setEstimatedValue] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const categories = [
+    'Electronics',
+    'Furniture',
+    'Clothing',
+    'Books',
+    'Sports',
+    'Tools',
+    'Toys',
+    'Kitchen',
+    'Garden',
+    'Art',
+    'Music',
+    'Other',
+  ];
+
+  const conditions = ['Like New', 'Good', 'Fair', 'Used'];
+
+  const handleCreate = async () => {
+    if (!title || !description) {
+      Alert.alert('Error', 'Please fill in all required fields');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await itemsAPI.create({
+        title,
+        description,
+        category,
+        condition,
+        estimatedValue: estimatedValue ? parseInt(estimatedValue) : null,
+      });
+
+      Alert.alert('Success', 'Item created successfully');
+      navigation.goBack();
+    } catch (error) {
+      Alert.alert('Error', 'Failed to create item');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <ScrollView style={styles.container}>
+      <Text style={styles.sectionTitle}>Item Details</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Item Title"
+        value={title}
+        onChangeText={setTitle}
+        editable={!loading}
+      />
+
+      <TextInput
+        style={[styles.input, styles.textArea]}
+        placeholder="Description"
+        value={description}
+        onChangeText={setDescription}
+        multiline
+        numberOfLines={4}
+        editable={!loading}
+      />
+
+      <Text style={styles.label}>Category</Text>
+      <View style={styles.pickerContainer}>
+        <Picker selectedValue={category} onValueChange={setCategory} enabled={!loading}>
+          {categories.map((cat) => (
+            <Picker.Item key={cat} label={cat} value={cat} />
+          ))}
+        </Picker>
+      </View>
+
+      <Text style={styles.label}>Condition</Text>
+      <View style={styles.pickerContainer}>
+        <Picker selectedValue={condition} onValueChange={setCondition} enabled={!loading}>
+          {conditions.map((cond) => (
+            <Picker.Item key={cond} label={cond} value={cond} />
+          ))}
+        </Picker>
+      </View>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Estimated Value (optional)"
+        value={estimatedValue}
+        onChangeText={setEstimatedValue}
+        keyboardType="numeric"
+        editable={!loading}
+      />
+
+      <TouchableOpacity
+        style={[styles.button, loading && styles.buttonDisabled]}
+        onPress={handleCreate}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Create Item</Text>
+        )}
+      </TouchableOpacity>
+    </ScrollView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#fff',
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 15,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    padding: 12,
+    marginBottom: 15,
+    borderRadius: 8,
+    backgroundColor: '#f9f9f9',
+  },
+  textArea: {
+    textAlignVertical: 'top',
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
+    color: '#333',
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    marginBottom: 15,
+    backgroundColor: '#f9f9f9',
+  },
+  button: {
+    backgroundColor: '#007AFF',
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 30,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+});
+
+export default CreateItemScreen;
